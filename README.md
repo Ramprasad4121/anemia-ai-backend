@@ -7,7 +7,7 @@ An AI-powered backend system that detects anemia from user-uploaded images of **
 ---
 ## Note:  This project is under active development. models are not fully reliable yet. Do not consider current predictions for clinical use.
 
-## Note: if you face any issues while local set-up , reach me out @ ramprasadgoud34@gmail.com
+## Note: if you face any issues while local set-up , reach  out @ ramprasadgoud34@gmail.com
 
 ##  Project Structure
 
