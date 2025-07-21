@@ -48,7 +48,7 @@ anemia-ai-backend/
 - Git
 - CUDA (Optional, for GPU acceleration)
 
-### 📦 Setup Instructions (read this clearly and install step-by-step)
+###  Setup Instructions (read this clearly and install step-by-step)
 
 ```bash
 # Clone the repository
@@ -67,7 +67,7 @@ pip install -r requirements.txt
 pip install ultralytics
 ```
 
-### 🔍 Download Pretrained Models
+###  Download Pretrained Models
 
 Place the following models into the `models/` directory:
 
@@ -83,7 +83,7 @@ models/
 
 ---
 
-## 🧪 Testing the API
+##  Testing the API
 
 Start the server:
 
