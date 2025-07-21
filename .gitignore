@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+*.ipynb_checkpoints
+
+# OS
+.DS_Store
+
+# Models / Weights
+*.pt
+*.pth
+
+# VSCode
+.vscode/
+
+# Logs
+logs/
