@@ -1,11 +1,32 @@
+# flask
+# pillow
+# opencv-python
+# torch
+# torchvision
+# tensorflow
+# ultralytics
+# numpy
+# matplotlib
+# boto3
+# pymongo
+
+
 flask
 pillow
 opencv-python-headless
 torch --index-url https://download.pytorch.org/whl/cpu
 torchvision --index-url https://download.pytorch.org/whl/cpu
+<<<<<<< HEAD
+=======
+tensorflow-cpu==2.13.0
+>>>>>>> c536f40 (Add Dockerfile and restore tensorflow)
 ultralytics
 numpy
 matplotlib
 boto3
 pymongo
+<<<<<<< HEAD
 gunicorn
+=======
+gunicorn
+>>>>>>> c536f40 (Add Dockerfile and restore tensorflow)
