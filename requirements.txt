@@ -8,3 +8,4 @@ numpy
 matplotlib
 boto3
 pymongo
+gunicorn
