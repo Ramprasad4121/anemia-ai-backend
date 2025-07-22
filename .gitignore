@@ -9,10 +9,6 @@ venv/
 # OS
 .DS_Store
 
-# Models / Weights
-*.pt
-*.pth
-
 # VSCode
 .vscode/
 
