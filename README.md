@@ -65,6 +65,16 @@ pip install -r requirements.txt
 
 # Make sure YOLOv8 is installed (from ultralytics) (use ai to install ultralytics if you face issue)
 pip install ultralytics
+
+# Initialize Git LFS
+git lfs install
+
+# Pull the LFS files (your model files)
+git lfs pull
+
+# Check if model files are properly downloaded
+ls -lh models/
+du -h models/*
 ```
 
 ###  Download Pretrained Models
