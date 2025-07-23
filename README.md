@@ -75,6 +75,8 @@ git lfs pull
 # Check if model files are properly downloaded
 ls -lh models/
 du -h models/*
+
+pip install "numpy<2.0" 
 ```
 
 ###  Download Pretrained Models
