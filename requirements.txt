@@ -1,13 +1,15 @@
-# flask
-# pillow
-# opencv-python
-# torch
-# torchvision
-# tensorflow
-# ultralytics
-# numpy
-# matplotlib
-# boto3
-# pymongo
+flask
+pillow
+opencv-python
+torch
+torchvision
+tensorflow
+ultralytics
+numpy
+matplotlib
+boto3
+pymongo
+numpy<2.0
+
 
 

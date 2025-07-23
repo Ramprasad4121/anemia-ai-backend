@@ -60,12 +60,6 @@ python -m venv venv
 source venv/bin/activate  # For Linux/macOS
 venv\Scripts\activate     # For Windows
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Make sure YOLOv8 is installed (from ultralytics) (use ai to install ultralytics if you face issue)
-pip install ultralytics
-
 # Initialize Git LFS
 git lfs install
 
@@ -76,7 +70,9 @@ git lfs pull
 ls -lh models/
 du -h models/*
 
-pip install "numpy<2.0" 
+# Install dependencies
+pip install -r requirements.txt
+
 ```
 
 ###  Download Pretrained Models
