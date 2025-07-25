@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify
 from PIL import Image
 import io
@@ -7,6 +8,9 @@ import base64
 import numpy as np
 
 app = Flask(__name__)
+
+# Configure Flask for larger file uploads (60MB per image)
+app.config['MAX_CONTENT_LENGTH'] = 300 * 1024 * 1024  # 300MB total (5 images × 60MB each)
 
 def convert_to_serializable(obj):
     if isinstance(obj, (np.bool_, np.integer, np.floating)):
@@ -31,6 +35,18 @@ def validate_and_process_image(file_obj, image_name):
     """
     try:
         if file_obj and file_obj.filename != '':
+            # Check individual file size (60MB limit per image)
+            file_obj.seek(0, 2)  # Seek to end of file
+            file_size = file_obj.tell()
+            file_obj.seek(0)  # Reset to beginning
+            
+            max_size_mb = 60
+            max_size_bytes = max_size_mb * 1024 * 1024
+            
+            if file_size > max_size_bytes:
+                print(f"❌ {image_name} too large: {file_size / (1024*1024):.1f}MB (max: {max_size_mb}MB)")
+                return None
+            
             # Read the image file
             image_data = file_obj.read()
             # Convert to PIL Image
@@ -38,7 +54,7 @@ def validate_and_process_image(file_obj, image_name):
             # Convert to RGB if necessary (in case of RGBA, grayscale, etc.)
             if pil_image.mode != 'RGB':
                 pil_image = pil_image.convert('RGB')
-            print(f"✅ Successfully loaded {image_name}: {pil_image.size}")
+            print(f"✅ Successfully loaded {image_name}: {pil_image.size} ({file_size / (1024*1024):.1f}MB)")
             return pil_image
         else:
             print(f"⚠️ No {image_name} provided")
@@ -47,17 +63,26 @@ def validate_and_process_image(file_obj, image_name):
         print(f"❌ Error processing {image_name}: {e}")
         return None
 
+@app.errorhandler(413)
+def too_large(e):
+    """Handle file too large error"""
+    return jsonify({
+        "error": "File too large",
+        "message": "Total upload size exceeds 300MB limit. Each image should be under 60MB.",
+        "success": False
+    }), 413
+
 @app.route('/predict_anemia', methods=['POST'])
 def predict_anemia():
     """
     Main API endpoint for anemia prediction
     
     Expected form-data fields:
-    - nail_image: Hand image file
-    - left_palm: Left palm image file
-    - right_palm: Right palm image file
-    - left_eye: Left eye image file
-    - right_eye: Right eye image file
+    - nail_image: Hand image file (max 60MB)
+    - left_palm: Left palm image file (max 60MB)
+    - right_palm: Right palm image file (max 60MB)
+    - left_eye: Left eye image file (max 60MB)
+    - right_eye: Right eye image file (max 60MB)
     """
     try:
         print("🚀 Starting anemia prediction API...")
@@ -85,7 +110,7 @@ def predict_anemia():
         if not valid_images:
             return jsonify({
                 "error": "No valid images could be processed",
-                "message": "All provided images failed to load. Please check image formats and try again.",
+                "message": "All provided images failed to load. Please check image formats and file sizes (max 60MB per image) and try again.",
                 "success": False
             }), 400
         
@@ -167,7 +192,7 @@ def home():
             "response": "Comprehensive anemia analysis with individual model results and final diagnosis"
         },
         "supported_formats": ["JPEG", "JPG", "PNG"],
-        "max_file_size": "10MB per image"
+        "max_file_size": "60MB per image (300MB total)"
     }), 200
 
 if __name__ == '__main__':
@@ -177,6 +202,7 @@ if __name__ == '__main__':
     print("   GET  /health        - Health check")
     print("   GET  /              - API information")
     print("🚀 Server starting on http://localhost:2000")
+    print("📁 Max file size: 60MB per image, 300MB total")
     
     app.run(
         host='0.0.0.0',  # Allow external connections
