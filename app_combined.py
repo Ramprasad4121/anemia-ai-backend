@@ -155,7 +155,8 @@ def predict_anemia():
             }
         }
 
-        print("✅ API response prepared successfully") 
+        print("✅ API response prepared successfully")
+        print(f"📤 Sending response: {api_response}")
         return jsonify(api_response), 200
         
     except Exception as e:
