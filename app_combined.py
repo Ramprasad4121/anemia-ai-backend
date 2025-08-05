@@ -74,16 +74,6 @@ def too_large(e):
 
 @app.route('/predict_anemia', methods=['POST'])
 def predict_anemia():
-    """
-    Main API endpoint for anemia prediction
-    
-    Expected form-data fields:
-    - nail_image: Hand image file (max 60MB)
-    - left_palm: Left palm image file (max 60MB)
-    - right_palm: Right palm image file (max 60MB)
-    - left_eye: Left eye image file (max 60MB)
-    - right_eye: Right eye image file (max 60MB)
-    """
     try:
         print("🚀 Starting anemia prediction API...")
         
@@ -158,14 +148,14 @@ def predict_anemia():
         print("✅ API response prepared successfully")
         print(f"📤 Sending response: {api_response}")
         return jsonify(api_response), 200
-        
+
     except Exception as e:
         error_message = str(e)
         error_trace = traceback.format_exc()
-        
+
         print(f"❌ API Error: {error_message}")
         print(f"📍 Full traceback: {error_trace}")
-        
+
         return jsonify({
             "success": False,
             "error": "Internal server error",
