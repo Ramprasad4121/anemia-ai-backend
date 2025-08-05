@@ -1,5 +1,6 @@
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from PIL import Image
 import io
 import traceback
@@ -8,6 +9,7 @@ import base64
 import numpy as np
 
 app = Flask(__name__)
+CORS(app, origins=["https://anemoscan.healthinnovations.in"])
 
 # Configure Flask for larger file uploads (60MB per image)
 app.config['MAX_CONTENT_LENGTH'] = 300 * 1024 * 1024  # 300MB total (5 images × 60MB each)
