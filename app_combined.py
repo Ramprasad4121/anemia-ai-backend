@@ -1,5 +1,4 @@
 
-
 from flask import Flask, request, jsonify
 from PIL import Image
 import io
@@ -125,20 +124,13 @@ def predict_anemia():
             left_eye=left_eye,
             right_eye=right_eye
         )
-
+        
+        # Convert all numpy types in results to native python types
         results = convert_to_serializable(results)
-
-        # Ensure required keys exist even if some models failed
-        for key in ["nail_analysis", "palm_analysis", "eye_analysis"]:
-            if key not in results:
-                results[key] = {
-                    "status": "error",
-                    "message": f"{key} analysis failed or not provided"
-                }
-
+        
         # Print summary to console
         final_summary = print_final_summary(results)
-
+        
         # Prepare API response
         api_response = {
             "success": True,
@@ -155,9 +147,8 @@ def predict_anemia():
                 "confidence_level": str(results["final_diagnosis"]["confidence_level"])
             }
         }
-
+        
         print("✅ API response prepared successfully")
-        print(f"📤 Sending response: {api_response}")
         return jsonify(api_response), 200
         
     except Exception as e:
@@ -218,4 +209,3 @@ if __name__ == '__main__':
         port=2000,
         debug=True  # Remove in production
     )
-
