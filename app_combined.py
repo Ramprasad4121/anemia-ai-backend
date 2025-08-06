@@ -1,5 +1,5 @@
-
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from PIL import Image
 import io
 import traceback
@@ -8,6 +8,7 @@ import base64
 import numpy as np
 
 app = Flask(__name__)
+CORS(app, origins=["https://anemoscan.healthinnovations.in"], supports_credentials=True, allow_headers=["Content-Type", "Authorization"], methods=["GET", "POST", "OPTIONS"])
 
 # Configure Flask for larger file uploads (60MB per image)
 app.config['MAX_CONTENT_LENGTH'] = 300 * 1024 * 1024  # 300MB total (5 images × 60MB each)
@@ -173,7 +174,9 @@ def health_check():
         "message": "Anemia detection API is running",
         "endpoints": {
             "/predict_anemia": "POST - Main prediction endpoint",
-            "/health": "GET - Health check"
+            "/health": "GET - Health check",
+            "/api/doctor/profile": "GET - Doctor profile endpoint",
+            "/api/donor/predict_anemia": "POST - Donor prediction endpoint"
         }
     }), 200
 
@@ -195,12 +198,43 @@ def home():
         "max_file_size": "60MB per image (300MB total)"
     }), 200
 
+@app.route('/api/doctor/profile', methods=['GET', 'OPTIONS'])
+def doctor_profile():
+    """Doctor profile endpoint"""
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        return '', 200
+    
+    # Return sample doctor profile data
+    return jsonify({
+        "success": True,
+        "data": {
+            "id": "doctor_001",
+            "name": "Dr. Smith",
+            "specialization": "Hematology",
+            "hospital": "Health Innovations Hospital",
+            "email": "doctor@healthinnovations.in"
+        }
+    }), 200
+
+@app.route('/api/donor/predict_anemia', methods=['POST', 'OPTIONS'])
+def donor_predict_anemia():
+    """Donor predict anemia endpoint - proxy to main predict_anemia"""
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        return '', 200
+    
+    # Forward the request to the main predict_anemia function
+    return predict_anemia()
+
 if __name__ == '__main__':
     print("🏥 Starting Anemia Detection API Server...")
     print("📡 Available endpoints:")
     print("   POST /predict_anemia - Main prediction endpoint")
     print("   GET  /health        - Health check")
     print("   GET  /              - API information")
+    print("   GET  /api/doctor/profile - Doctor profile endpoint")
+    print("   POST /api/donor/predict_anemia - Donor prediction endpoint")
     print("🚀 Server starting on http://localhost:2000")
     print("📁 Max file size: 60MB per image, 300MB total")
     
