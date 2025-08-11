@@ -120,8 +120,8 @@ def predict_anemia():
         # Run the combined analysis
         results = process_all_images(
             nail_image=nail_image,
-            left_palm=left_palm,
-            right_palm=right_palm,
+            left_palm_path=left_palm,
+            right_palm_path=right_palm,
             left_eye=left_eye,
             right_eye=right_eye
         )
