@@ -4,6 +4,7 @@ import torch.nn as nn
 from torchvision import transforms, models
 import base64
 from io import BytesIO
+from palm_model.palm_utils import extract_palm
 
 # === Load MobileNetV2 ===
 PALM_MODEL_PATH = "./models/mobilenet_model.pth"

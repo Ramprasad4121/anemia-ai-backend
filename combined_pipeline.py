@@ -4,6 +4,9 @@ from palm_model.palm_pipeline import run_palm_pipeline
 from eye_model.eye_pipeline import run_eye_pipeline
 import numpy as np
 from collections import Counter
+from palm_model.palm_utils import extract_palm
+import cv2
+import io
 
 # Helper function to make results JSON serializable
 def make_json_serializable(obj):
@@ -20,7 +23,7 @@ def make_json_serializable(obj):
     else:
         return obj
 
-def process_all_images(nail_image=None, left_palm=None, right_palm=None, left_eye=None, right_eye=None):
+def process_all_images(nail_image=None, left_palm_path=None, right_palm_path=None, left_eye=None, right_eye=None):
     """
     Main orchestrator function that processes all images and returns comprehensive results
     
@@ -107,11 +110,13 @@ def process_all_images(nail_image=None, left_palm=None, right_palm=None, left_ey
     # Process Palm Images
     palm_predictions = []
     palm_confidences = []
-    
-    if left_palm is not None:
-        print("🔄 Processing left palm...")
+
+    if left_palm_path is not None:
+        print("🔄 Cropping and processing left palm...")
         try:
-            left_palm_result = run_palm_pipeline(left_palm, "left")
+            cropped_left_cv = extract_palm(left_palm_path, 'temp_left_palm.jpg')
+            cropped_left_pil = Image.fromarray(cv2.cvtColor(cropped_left_cv, cv2.COLOR_BGR2RGB))
+            left_palm_result = run_palm_pipeline(cropped_left_pil, "left")
             # Remove any full/original image base64 fields (keep only cropped/thumbs)
             if isinstance(left_palm_result, dict):
                 left_palm_result = {
@@ -132,11 +137,13 @@ def process_all_images(nail_image=None, left_palm=None, right_palm=None, left_ey
         except Exception as e:
             results["palm_analysis"]["left_palm"] = {"success": False, "error": str(e)}
             print(f"❌ Left palm processing error: {e}")
-    
-    if right_palm is not None:
-        print("🔄 Processing right palm...")
+
+    if right_palm_path is not None:
+        print("🔄 Cropping and processing right palm...")
         try:
-            right_palm_result = run_palm_pipeline(right_palm, "right")
+            cropped_right_cv = extract_palm(right_palm_path, 'temp_right_palm.jpg')
+            cropped_right_pil = Image.fromarray(cv2.cvtColor(cropped_right_cv, cv2.COLOR_BGR2RGB))
+            right_palm_result = run_palm_pipeline(cropped_right_pil, "right")
             # Remove any full/original image base64 fields (keep only cropped/thumbs)
             if isinstance(right_palm_result, dict):
                 right_palm_result = {

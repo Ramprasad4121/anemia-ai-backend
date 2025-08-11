@@ -12,8 +12,8 @@ from io import BytesIO
 torch.serialization.add_safe_globals([torch.nn.Module])
 
 # === Setup paths ===
-YOLO_MODEL_PATH = "models/yolov8_model.pt"
-RESNET_MODEL_PATH = "models/resnet101_anemia_model1.pth"
+YOLO_MODEL_PATH = "models/best 10aug2025 eye.pt"
+RESNET_MODEL_PATH = "models/MobileNetV2_eye.pth"
 
 # === Load models globally ===
 yolo_model = None
@@ -85,66 +85,79 @@ def numpy_to_base64(numpy_array):
     return pil_to_base64(pil_image)
 
 # === Helper: Crop conjunctiva using YOLO ===
-def crop_conjunctiva(image_input):
+def crop_conjunctiva(image_path):
+    """
+    Crops the conjunctiva region from an image using YOLO segmentation masks.
+    Returns:
+        cropped_rgb (np.ndarray): Cropped RGB image of conjunctiva
+        detection_info (dict): Bounding box and confidence score
+    """
     if not models_loaded:
         print("❌ Models not loaded, cannot crop conjunctiva")
         return None, None
-        
+    
     try:
-        # Handle both file paths and PIL Image objects
-        if isinstance(image_input, str):
-            # It's a file path
-            if not os.path.exists(image_input):
-                print(f"❌ Image file not found: {image_input}")
-                return None, None
+        if not os.path.exists(image_path):
+            print(f"❌ Image file not found: {image_path}")
+            return None, None
+        
+        image = cv2.imread(image_path)
+        if image is None:
+            print(f"❌ Could not load image: {image_path}")
+            return None, None
+        
+        h, w = image.shape[:2]
+        print(f"🔄 Processing image from path: {image_path}")
+        
+        # YOLO predict with segmentation masks
+        results = yolo_model(image_path, imgsz=224, verbose=False)
+        
+        saved = False
+        for r in results:
+            # Only process results with segmentation masks
+            if r.masks is None:
+                continue
+            
+            masks = r.masks.data.cpu().numpy()  # (N, H, W)
+            for i, mask in enumerate(masks):
+                # Check class id matches conjunctiva class
+                cls = int(r.boxes.cls[i].cpu().numpy()) if len(r.boxes) > i else None
+                if cls != CLASS_TARGET:
+                    continue
                 
-            image = cv2.imread(image_input)
-            if image is None:
-                print(f"❌ Could not load image: {image_input}")
-                return None, None
-            print(f"🔄 Processing image from path: {image_input}")
+                # Convert mask to uint8
+                mask_uint8 = (mask * 255).astype(np.uint8)
+                
+                # Resize mask back to original image size
+                mask_resized = cv2.resize(mask_uint8, (w, h), interpolation=cv2.INTER_NEAREST)
+                
+                # Find bounding rectangle for the mask
+                nonz = cv2.findNonZero(mask_resized)
+                if nonz is None:
+                    continue
+                
+                x, y, bw, bh = cv2.boundingRect(nonz)
+                
+                # Apply mask to image
+                cropped_masked = cv2.bitwise_and(image, image, mask=mask_resized)
+                cropped_tight = cropped_masked[y:y+bh, x:x+bw]
+                
+                # Compose detection info
+                confidence = float(r.boxes.conf[i].item()) if r.boxes.conf is not None and len(r.boxes.conf) > i else 1.0
+                detection_info = {
+                    "bounding_box": [x, y, x+bw, y+bh],
+                    "confidence": confidence
+                }
+                
+                cropped_rgb = cv2.cvtColor(cropped_tight, cv2.COLOR_BGR2RGB)
+                
+                print(f"✅ Successfully cropped conjunctiva for: {image_path}")
+                return cropped_rgb, detection_info
             
-            # For YOLO prediction with file path
-            results = yolo_model.predict(image_input, conf=0.05, verbose=False)
-            
-        elif hasattr(image_input, 'mode'):
-            # It's a PIL Image object
-            print("🔄 Processing PIL Image object")
-            # Ensure consistent and correct conversion for YOLO input
-            image_array = np.array(image_input.convert("RGB"))
-            image = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-            results = yolo_model.predict(image_array, conf=0.05, verbose=False)
-            
-        else:
-            print(f"❌ Unsupported image input type: {type(image_input)}")
-            return None, None
-        
-        if len(results) == 0 or results[0].boxes is None:
-            print(f"❌ No detection results")
-            return None, None
-            
-        boxes = results[0].boxes.xyxy.cpu().numpy()
-        print(f"🔍 Detected {len(boxes)} conjunctiva boxes")
-
-        if len(boxes) == 0:
-            print("⚠️ No conjunctiva detected - fallback resizing")
-            return None, None
-
-        # Only take first detection
-        x1, y1, x2, y2 = map(int, boxes[0])
-        print(f"📍 Detected conjunctiva at: ({x1}, {y1}, {x2}, {y2})")
-        
-        cropped = image[y1:y2, x1:x2]
-        cropped_rgb = cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB)
-        
-        detection_info = {
-            "bounding_box": [x1, y1, x2, y2],
-            "confidence": float(results[0].boxes.conf[0].item()) if results[0].boxes.conf is not None and len(results[0].boxes.conf) > 0 else 1.0
-        }
-        
-        print(f"✅ Successfully cropped conjunctiva")
-        return cropped_rgb, detection_info
-        
+            # If no mask matched the class, continue to next result
+        print(f"⚠️ No conjunctiva mask detected for: {image_path}")
+        return None, None
+    
     except Exception as e:
         print(f"❌ Error processing image: {e}")
         print(f"Full traceback: {traceback.format_exc()}")
